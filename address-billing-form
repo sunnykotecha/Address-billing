@@ -1,0 +1,58 @@
+<?php
+/*
+Plugin Name: WP Plugin
+*/
+
+add_shortcode('billing_form', 'wpturbo_billing_form_shortcode');
+
+function wpturbo_billing_form_shortcode() {
+    ob_start();
+    
+    // Retrieve the user's billing information
+    $user_id = get_current_user_id();
+    $billing_address = get_user_meta($user_id, 'billing_address', true);
+    $billing_city = get_user_meta($user_id, 'billing_city', true);
+    $billing_state = get_user_meta($user_id, 'billing_state', true);
+    $billing_zip = get_user_meta($user_id, 'billing_zip', true);
+    
+    // Handle form submission
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        // Sanitize and save the form data
+        $updated_billing_address = sanitize_text_field($_POST['billing_address']);
+        $updated_billing_city = sanitize_text_field($_POST['billing_city']);
+        $updated_billing_state = sanitize_text_field($_POST['billing_state']);
+        $updated_billing_zip = sanitize_text_field($_POST['billing_zip']);
+        
+        // Update user meta data
+        update_user_meta($user_id, 'billing_address', $updated_billing_address);
+        update_user_meta($user_id, 'billing_city', $updated_billing_city);
+        update_user_meta($user_id, 'billing_state', $updated_billing_state);
+        update_user_meta($user_id, 'billing_zip', $updated_billing_zip);
+        
+        // Redirect to prevent form resubmission
+        wp_redirect($_SERVER['REQUEST_URI']);
+        exit;
+    }
+    
+    // Display the billing form
+    ?>
+    <form method="POST">
+        <label for="billing_address">Billing Address:</label>
+        <input type="text" name="billing_address" id="billing_address" value="<?php echo esc_attr($billing_address); ?>" required>
+        
+        <label for="billing_city">City:</label>
+        <input type="text" name="billing_city" id="billing_city" value="<?php echo esc_attr($billing_city); ?>" required>
+        
+        <label for="billing_state">State:</label>
+        <input type="text" name="billing_state" id="billing_state" value="<?php echo esc_attr($billing_state); ?>" required>
+        
+        <label for="billing_zip">ZIP Code:</label>
+        <input type="text" name="billing_zip" id="billing_zip" value="<?php echo esc_attr($billing_zip); ?>" required>
+        
+        <input type="submit" value="Save">
+    </form>
+    <?php
+    
+    return ob_get_clean();
+}
+
